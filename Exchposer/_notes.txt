@@ -1,4 +1,6 @@
-﻿parameter names: camelCase
+﻿Exchange Web Services (EWS) Managed API: http://www.microsoft.com/en-us/download/details.aspx?id=35371
+
+parameter names: camelCase
 local variables: camelCase
 properties: MixedCase
 private member variables: camelCase

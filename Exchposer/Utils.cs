@@ -36,6 +36,9 @@ namespace Exchposer
 
         public static string Decrypt(string encryptedText, string password)
         {
+            if (encryptedText == "")
+                return "";
+
             byte[] encryptedTextBytes = Convert.FromBase64String(encryptedText);
             byte[] plainTextBytes = new byte[encryptedTextBytes.Length];
             string result;

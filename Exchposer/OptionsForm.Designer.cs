@@ -75,6 +75,7 @@
             this.btnOfflineSyncNow = new System.Windows.Forms.Button();
             this.dtpOffilneSyncTo = new System.Windows.Forms.DateTimePicker();
             this.dtpOffilneSyncFrom = new System.Windows.Forms.DateTimePicker();
+            this.chkAutoRun = new System.Windows.Forms.CheckBox();
             this.grpExchange.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.updExchangeSubscriptionLifetime)).BeginInit();
             this.grpMail.SuspendLayout();
@@ -92,7 +93,7 @@
             this.lblBevel.Margin = new System.Windows.Forms.Padding(0);
             this.lblBevel.Name = "lblBevel";
             this.lblBevel.Size = new System.Drawing.Size(680, 3);
-            this.lblBevel.TabIndex = 4;
+            this.lblBevel.TabIndex = 6;
             // 
             // btnOk
             // 
@@ -101,7 +102,7 @@
             this.btnOk.Location = new System.Drawing.Point(485, 440);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(100, 28);
-            this.btnOk.TabIndex = 6;
+            this.btnOk.TabIndex = 7;
             this.btnOk.Text = "OK";
             this.btnOk.UseVisualStyleBackColor = true;
             this.btnOk.Click += new System.EventHandler(this.btnOk_Click);
@@ -113,7 +114,7 @@
             this.btnCancel.Location = new System.Drawing.Point(591, 440);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(100, 28);
-            this.btnCancel.TabIndex = 7;
+            this.btnCancel.TabIndex = 8;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             // 
@@ -531,6 +532,16 @@
             this.dtpOffilneSyncFrom.TabIndex = 0;
             this.dtpOffilneSyncFrom.Value = new System.DateTime(2013, 11, 28, 13, 39, 39, 0);
             // 
+            // chkAutoRun
+            // 
+            this.chkAutoRun.AutoSize = true;
+            this.chkAutoRun.Location = new System.Drawing.Point(364, 276);
+            this.chkAutoRun.Name = "chkAutoRun";
+            this.chkAutoRun.Size = new System.Drawing.Size(180, 21);
+            this.chkAutoRun.TabIndex = 4;
+            this.chkAutoRun.Text = "Run at Windows startup";
+            this.chkAutoRun.UseVisualStyleBackColor = true;
+            // 
             // OptionsForm
             // 
             this.AcceptButton = this.btnOk;
@@ -538,6 +549,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
             this.ClientSize = new System.Drawing.Size(704, 479);
+            this.Controls.Add(this.chkAutoRun);
             this.Controls.Add(this.grpOfflineSync);
             this.Controls.Add(this.grpOnlineSync);
             this.Controls.Add(this.grpLog);
@@ -565,6 +577,7 @@
             this.grpOfflineSync.ResumeLayout(false);
             this.grpOfflineSync.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -616,5 +629,6 @@
         private System.Windows.Forms.Button btnOfflineSyncNow;
         private System.Windows.Forms.DateTimePicker dtpOffilneSyncTo;
         private System.Windows.Forms.DateTimePicker dtpOffilneSyncFrom;
+        private System.Windows.Forms.CheckBox chkAutoRun;
     }
 }

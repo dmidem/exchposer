@@ -18,7 +18,7 @@ namespace Exchposer
         public string ExchangeDomain = "";
         public string ExchangeUserName = "";
         public string ExchangePasswordCrypted = "";
-        public int ExchangeSubscriptionLifetime = 60;
+        public int ExchangeSubscriptionLifetime = 30;
         public string ExchangePassword
         {
             get { return Crypto.Decrypt(ExchangePasswordCrypted, SettingsPassword); }

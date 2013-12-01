@@ -46,6 +46,8 @@ namespace Exchposer
             updLogLevel.Text = appSetting.LogLevel.ToString();
             chkLogClearOnStartup.Checked = appSetting.LogClearOnStartup;
 
+            chkAutoRun.Checked = exchposer.AutoRun;
+
             UpdateControlsEnabling();
         }
 
@@ -75,6 +77,8 @@ namespace Exchposer
             appSetting.LogFileName = txtLogFileName.Text;
             appSetting.LogLevel = Convert.ToInt32(updLogLevel.Text);
             appSetting.LogClearOnStartup = chkLogClearOnStartup.Checked;
+
+            exchposer.AutoRun = chkAutoRun.Checked;
         }
 
 

@@ -99,7 +99,7 @@ namespace Exchposer
 
         public void Clear()
         {
-            if (fileWriter == null)
+            if (fileWriter != null)
                 Close();
             for (int i = maxLogFileCount - 1; i >= 0; --i)
             {

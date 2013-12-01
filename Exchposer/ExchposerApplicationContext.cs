@@ -7,11 +7,14 @@ using Microsoft.Exchange.WebServices.Data;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Drawing;
+using Microsoft.Win32;
 
 namespace Exchposer
 {
     public class ExchposerApplicationContext : ApplicationContext, IExchposer
     {
+        RegistryKey rkApp = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+
         private const int maxLogFileSize = 1024 * 50;
         private const int maxLogFileCount = 3;
 
@@ -25,17 +28,37 @@ namespace Exchposer
         //Icon AppIconNormal = new Icon("AppIconNormal.ico");
         //Icon AppIconBusy = new Icon("AppIconBusy.ico");
 
+        public bool Initialized { get { return notifyIcon != null; } }
+
         NotifyIcon notifyIcon = null;
         ContextMenuStrip notifyIconMenu = null;
         OptionsForm optionsForm = null;
         LogViewForm logViewForm = null;
+
+        public bool AutoRun
+        {
+            get
+            {
+                return (rkApp.GetValue(AppSettings.AppName) != null);
+            }
+            set
+            {
+                if (AutoRun != value)
+                {
+                    if (value)
+                        rkApp.SetValue(AppSettings.AppName, Application.ExecutablePath.ToString());
+                    else
+                        rkApp.DeleteValue(AppSettings.AppName, false);
+                }
+            }
+        }
 
         delegate void SetLogCallback(int level, string message);
 
         private void CreateAppDefaultFolder(string folderName)
         {
             if (System.IO.Path.GetFullPath(folderName).Equals(System.IO.Path.GetFullPath(AppSettings.AppDefaultFolder)))
-                Directory.CreateDirectory(Path.GetDirectoryName(folderName));
+                Directory.CreateDirectory(folderName);
         }
 
         protected void Log(int level, string message)
@@ -98,7 +121,7 @@ namespace Exchposer
             }
         }
 
-        public void SyncInit(DateTime syncFromTime, DateTime syncToTime, bool offlineSync)
+        public bool SyncInit(DateTime syncFromTime, DateTime syncToTime, bool offlineSync)
         {
             try
             {
@@ -107,7 +130,7 @@ namespace Exchposer
             catch (Exception ex)
             {
                 MessageBox.Show(String.Format("Load settings error: {0}", ex.Message));
-                return;
+                return false;
             }
 
             try
@@ -120,13 +143,21 @@ namespace Exchposer
             catch (Exception ex)
             {
                 MessageBox.Show(String.Format("Open/create log file error: {0}", ex.Message));
-                return;
+                return false;
             }
 
             exchangeServer = new ExchangeServer(appSettings.ExchangeUserName, appSettings.ExchangePassword,
                 appSettings.ExchangeDomain, appSettings.ExchangeUrl, (l, m) => { Log(l, m); });
 
-            exchangeServer.Open();
+            try
+            {
+                exchangeServer.Open();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(String.Format("Exchange server connection error: {0}", ex.Message));
+                return false;
+            }
 
             switch (appSettings.MailServerType)
             {
@@ -152,6 +183,8 @@ namespace Exchposer
 
             if (syncToTime > syncFromTime)
                 SyncExchangeMessages(syncFromTime, syncToTime, offlineSync);
+
+            return true;
         }
 
         public void SyncStart()
@@ -175,7 +208,8 @@ namespace Exchposer
             if ((currentTime - syncFromTime).TotalDays > appSettings.MaxDaysToSync)
                 syncFromTime = currentTime.AddDays(-appSettings.MaxDaysToSync + 1).Date;
 
-            SyncInit(syncFromTime, syncToTime, false);
+            if (!SyncInit(syncFromTime, syncToTime, false))
+                return;
 
             exchangeServer.SetStreamingNotifications(msg =>
             {
@@ -227,16 +261,17 @@ namespace Exchposer
 
         public ExchposerApplicationContext(string appSettingsFileName)
         {
+            string fileName = "";
             try
             {
-                string fileName = (appSettingsFileName != null ? appSettingsFileName : Path.Combine(AppSettings.AppDefaultFolder, "config.xml"));
+                fileName = (appSettingsFileName != null ? appSettingsFileName : Path.Combine(AppSettings.AppDefaultFolder, "config.xml"));
                 CreateAppDefaultFolder(Path.GetDirectoryName(fileName));
                 appSettings = AppSettings.Load(fileName);
                 appSettings.Save();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(String.Format("Load settings error: {0}", ex.Message));
+                MessageBox.Show(String.Format("Unable to read/write settings from file {0}: {1}", fileName, ex.Message));
                 return;
             }
 

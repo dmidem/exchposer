@@ -37,7 +37,18 @@ namespace Exchposer
             Application.SetCompatibleTextRenderingDefault(false);            
             //ExchposerApplicationContext exchposerApplicationContext = new ExchposerApplicationContext();
             //Application.ApplicationExit += new EventHandler(exchposerApplicationContext.OnApplicationExit);
-            Application.Run(new ExchposerApplicationContext(appSettingsFileName));
+
+            try
+            {
+                ExchposerApplicationContext exchposerApplicationContext = new ExchposerApplicationContext(appSettingsFileName);
+                if (exchposerApplicationContext.Initialized)
+                    Application.Run(exchposerApplicationContext);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(String.Format("Fatal application error: {0}", ex.Message));
+                return;
+            }
         }
     }
 
