@@ -290,6 +290,8 @@ namespace Exchposer
             notifyIcon.DoubleClick += new EventHandler(NotifyIcon_DoubleClick);
             notifyIcon.Visible = true;
 
+            CertificateCallback.Initialize(); 
+
             if (appSettings.SyncEnabled)
                 SyncStart();
         }

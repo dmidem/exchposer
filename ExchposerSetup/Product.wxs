@@ -17,15 +17,15 @@
       <ComponentRef Id="EWS_dlls" />
       <ComponentRef Id="ApplicationShortcut" />
     </Feature>
-    
-    <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
+
+    <!-- <Property Id="OLDERFOUND" Secure="yes" /> -->
     <!-- <Property Id="ALLUSERS" Value="1" /> -->
     <Upgrade Id="$(var.UpgradeCode)">
-      <UpgradeVersion Property="PREVIOUSVERSIONSINSTALLED" OnlyDetect="no" IncludeMinimum="yes" Minimum="0.0.0.0" IncludeMaximum="no" Maximum="$(var.ProductVersion)" />
-      <UpgradeVersion Minimum="$(var.ProductVersion)" IncludeMinimum="no" OnlyDetect="yes" Language="1033" Property="NEWERPRODUCTFOUND" />
+      <UpgradeVersion Property="OLDERFOUND" OnlyDetect="no" IncludeMaximum="no" Maximum="$(var.ProductVersion)" />
+      <UpgradeVersion Property="NEWERFOUND" OnlyDetect="yes" IncludeMinimum="no" Minimum="$(var.ProductVersion)" />
     </Upgrade>
     <InstallExecuteSequence>
-      <Custom Action="PreventDowngrading" After="FindRelatedProducts">NEWERPRODUCTFOUND AND NOT Installed</Custom>
+      <Custom Action="PreventDowngrading" After="FindRelatedProducts">NEWERFOUND</Custom>
       <RemoveExistingProducts Before='InstallInitialize' />
     </InstallExecuteSequence>
     <CustomAction Id="PreventDowngrading" Error="Newer version already installed." />

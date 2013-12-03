@@ -75,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppSettings.cs" />
+    <Compile Include="CertificateCallback.cs" />
     <Compile Include="ExchangeServer.cs" />
     <Compile Include="IExchposer.cs" />
     <Compile Include="Program.cs" />
