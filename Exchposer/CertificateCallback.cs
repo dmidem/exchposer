@@ -8,6 +8,13 @@ namespace Exchposer
 {
     public static class CertificateCallback
     {
+        private static bool acceptInvalidCertificate = false;
+        public static bool AcceptInvalidCertificate
+        {
+            get { return acceptInvalidCertificate; }
+            set { acceptInvalidCertificate = value; }
+        }
+
         static CertificateCallback()
         {
             ServicePointManager.ServerCertificateValidationCallback = CertificateValidationCallBack;
@@ -48,7 +55,8 @@ namespace Exchposer
                             {
                                 // If there are any other errors in the certificate chain, the certificate is invalid, 
                                 // so the method returns false. 
-                                return false;
+                                //return false;
+                                return acceptInvalidCertificate;
                             }
                         }
                     }

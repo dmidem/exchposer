@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Timers;
 using Microsoft.Exchange.WebServices.Data;
 
 namespace Exchposer
@@ -20,8 +21,11 @@ namespace Exchposer
         private StreamingSubscriptionConnection subscriptionConnection = null;
         private StreamingSubscription streamingSubscription = null;
         private Action<EmailMessage> onReceive = null;
+        private int subscriptionConnectionLifetime = 0;
 
         private readonly Action<int, string> logger = null;
+
+        private Timer restartTimer = new Timer();
 
         protected void Log(int level, string message)
         {
@@ -29,13 +33,18 @@ namespace Exchposer
                 logger(level, message);
         }
 
-        public ExchangeServer(string exchangeUserName, string exchangePassword, string exchangeDomain, string exchangeUrl, Action<int, string> logger = null)
+        public ExchangeServer(string exchangeUserName, string exchangePassword, string exchangeDomain, string exchangeUrl,
+            int restartTimeout, Action<int, string> logger = null)
         {
             this.logger = logger;
             this.exchangeUserName = exchangeUserName;
             this.exchangePassword = exchangePassword;
             this.exchangeDomain = exchangeDomain;
             this.exchangeUrl = exchangeUrl;
+
+            restartTimer.Elapsed += new ElapsedEventHandler(restartTimer_Elapsed);
+            restartTimer.Interval = restartTimeout * 1000;
+            restartTimer.AutoReset = false;
         }
 
         public void Open()
@@ -61,7 +70,12 @@ namespace Exchposer
 
         public void Close()
         {
-            ClearStreamingNotifications();
+            Log(2, "Exchange server closing...");
+
+            StopStreamingNotifications();
+
+            this.onReceive = null;
+            this.subscriptionConnectionLifetime = 0;
 
             if (service != null)
                 Log(2, "Exchange server closed");
@@ -71,6 +85,15 @@ namespace Exchposer
         
         public void ProcessMessages(DateTime fromTime, DateTime toTime, Action<EmailMessage> messageAction)
         {
+            if (messageAction == null)
+                return;
+
+            if (service == null)
+            {
+                Log(2, "Exchange server is null");
+                return;
+            }
+
             Folder inbox = Folder.Bind(service, WellKnownFolderName.Inbox);
 
             SearchFilter sf = new SearchFilter.SearchFilterCollection(LogicalOperator.And,
@@ -86,8 +109,7 @@ namespace Exchposer
                 FindItemsResults<Item> findResults = service.FindItems(WellKnownFolderName.Inbox, sf, view);
 
                 foreach (EmailMessage msg in findResults)
-                    if (messageAction != null)
-                        messageAction(msg);
+                    messageAction(msg);
 
                 if (!findResults.MoreAvailable)
                     break;
@@ -109,13 +131,27 @@ namespace Exchposer
                 }));
         }
 
-        public void SetStreamingNotifications(Action<EmailMessage> onReceive, int lifetime)
+        public void StartStreamingNotifications(Action<EmailMessage> onReceive, int lifetime)
         {
             this.onReceive = onReceive;
+            this.subscriptionConnectionLifetime = lifetime;
+
+            StartStreamingNotifications();
+        }
+
+        public void StartStreamingNotifications()
+        {
+            if (service == null)
+            {
+                Log(2, "Exchange server is null");
+                return;
+            }
+
+            StopStreamingNotifications();
 
             try
             {
-                subscriptionConnection = new StreamingSubscriptionConnection(service, lifetime);
+                subscriptionConnection = new StreamingSubscriptionConnection(service, subscriptionConnectionLifetime);
                 subscriptionConnection.OnNotificationEvent +=
                     new StreamingSubscriptionConnection.NotificationEventDelegate(OnEvent);
                 subscriptionConnection.OnSubscriptionError +=
@@ -126,68 +162,67 @@ namespace Exchposer
             catch (Exception ex)
             {
                 Log(1, String.Format("Exchange subscription connection creating error: {0}", ex.Message));
-                ClearStreamingNotifications();
+                if (subscriptionConnection != null)
+                    subscriptionConnection.Dispose();
+                subscriptionConnection = null;
                 return;
             }
 
             try
             {
                 subscriptionConnection.AddSubscription(streamingSubscription = service.SubscribeToStreamingNotifications(
-                    new FolderId[] { WellKnownFolderName.Inbox },
-                    EventType.NewMail,
-                    EventType.Created,
-                    EventType.Deleted));
+                    new FolderId[] { WellKnownFolderName.Inbox }, EventType.NewMail, EventType.Created, EventType.Deleted));
                 subscriptionConnection.Open();
             }
             catch (Exception ex)
             {
                 Log(1, String.Format("Exchange subscription creating error: {0}", ex.Message));
-                ClearStreamingNotifications();
+                RestartStreamingNotifications();
                 return;
             }
 
             Log(2, "Exchange subscription started");
         }
 
-        public void ClearStreamingNotifications()
+        public void StopStreamingNotifications()
         {
+            restartTimer.Stop();
+
             try
             {
-                /*
-                if (subscriptionConnection != null)
-                    subscriptionConnection.RemoveSubscription(streamingSubscription);
-
                 if (streamingSubscription != null)
-                    streamingSubscription.Unsubscribe();
-                streamingSubscription = null;
-
-                if (subscriptionConnection != null)
-                    subscriptionConnection.Close();
-                subscriptionConnection = null;
-                */
+                {
+                    var tmpStreamingSubscription = streamingSubscription;
+                    streamingSubscription = null;
+                    tmpStreamingSubscription.Unsubscribe();
+                }
 
                 if (subscriptionConnection != null)
                 {
-                    subscriptionConnection.Close();
-                    subscriptionConnection.RemoveSubscription(streamingSubscription);
+                    if (subscriptionConnection.IsOpen)
+                        subscriptionConnection.Close();
+                    subscriptionConnection.Dispose();
+                    subscriptionConnection = null;
+                    Log(2, "Exchange subscription stopped");
                 }
-                subscriptionConnection = null;
-
-                if (streamingSubscription != null)
-                {
-                    streamingSubscription.Unsubscribe();
-                }
-                streamingSubscription = null;
-
-
-                this.onReceive = null;
             }
             catch (Exception ex)
             {
                 Log(1, String.Format("Exchange subscription stopping error: {0}", ex.Message));
             }
+        }
 
-            Log(2, "Exchange subscription stopped");
+        public void RestartStreamingNotifications()
+        {
+            StopStreamingNotifications();
+            if (restartTimer.Interval != 0)
+                restartTimer.Start();
+        }
+
+        private void restartTimer_Elapsed(object source, ElapsedEventArgs e)
+        {
+            Log(2, "Restarting exchange streaming notification...");
+            StartStreamingNotifications();
         }
 
         private void OnEvent(object sender, NotificationEventArgs args)
@@ -226,44 +261,33 @@ namespace Exchposer
 
         private void OnError(object sender, SubscriptionErrorEventArgs args)
         {
-            Log(3, String.Format("Exchange subscription error: {0} Resetting subscribtion...", args.Exception.Message));
+            if (streamingSubscription == null)
+                return;
 
-            /*
+            Log(3, String.Format("Exchange subscription error: {0} Restartting subscribtion...", args.Exception.Message));
+            RestartStreamingNotifications();
+/*
             try
             {
-                subscriptionConnection.Close();
-                //streamingSubscription.Unsubscribe();
-                //subscriptionConnection.RemoveSubscription(streamingSubscription);
-            }
-            catch (Exception ex)
-            {
-                Log(1, String.Format("Exchange subscription removing error: {0}", ex.Message));
-            }
-            */
-
-            try
-            {
-                subscriptionConnection.AddSubscription(streamingSubscription = service.SubscribeToStreamingNotifications(
-                      new FolderId[] { WellKnownFolderName.Inbox },
-                      EventType.NewMail,
-                      EventType.Created,
-                      EventType.Deleted));
+                if (service != null)
+                    subscriptionConnection.AddSubscription(streamingSubscription = service.SubscribeToStreamingNotifications(
+                        new FolderId[] { WellKnownFolderName.Inbox }, EventType.NewMail, EventType.Created, EventType.Deleted));
                 //subscriptionConnection.Open();
             }
             catch (Exception ex)
             {
                 Log(1, String.Format("Exchange subscription creating error: {0}", ex.Message));
-                ClearStreamingNotifications();
                 return;
             }
 
             Log(2, "Exchange subscription started");
+ */
         }
 
         private void OnDisconnect(object sender, SubscriptionErrorEventArgs args)
         {
-            //if (streamingSubscription == null)
-            //    return;
+            if (streamingSubscription == null)
+                return;
 
             Log(3, String.Format("Exchange subscription disconnected. Reconnecting..."));
 
@@ -274,8 +298,8 @@ namespace Exchposer
             }
             catch (Exception ex)
             {
-                Log(1, String.Format("Exchange subscription connection open error: {0}", ex.Message));
-                //ClearStreamingNotifications();
+                Log(1, String.Format("Exchange subscription connection open error: {0}", ex.Message));                
+                RestartStreamingNotifications();
                 return;
             }
         }

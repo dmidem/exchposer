@@ -31,6 +31,7 @@ namespace Exchposer
             txtExchangeUserName.Text = appSetting.ExchangeUserName;
             txtExchangePassword.Text = appSetting.ExchangePassword;
             updExchangeSubscriptionLifetime.Value = appSetting.ExchangeSubscriptionLifetime;
+            chkExchangeAcceptInvalidCertificate.Checked = appSetting.ExchangeAcceptInvalidCertificate;
 
             txtMailServerName.Text = appSetting.MailServerName;
             txtMailServerPort.Text = appSetting.MailServerPort.ToString();
@@ -63,6 +64,7 @@ namespace Exchposer
             appSetting.ExchangeUserName = txtExchangeUserName.Text;
             appSetting.ExchangePassword = txtExchangePassword.Text;
             appSetting.ExchangeSubscriptionLifetime = (int)updExchangeSubscriptionLifetime.Value;
+            appSetting.ExchangeAcceptInvalidCertificate = chkExchangeAcceptInvalidCertificate.Checked;
 
             appSetting.MailServerName = txtMailServerName.Text;
             appSetting.MailServerPort = Convert.ToInt32(txtMailServerPort.Text);

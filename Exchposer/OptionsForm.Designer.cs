@@ -76,6 +76,7 @@
             this.dtpOffilneSyncTo = new System.Windows.Forms.DateTimePicker();
             this.dtpOffilneSyncFrom = new System.Windows.Forms.DateTimePicker();
             this.chkAutoRun = new System.Windows.Forms.CheckBox();
+            this.chkExchangeAcceptInvalidCertificate = new System.Windows.Forms.CheckBox();
             this.grpExchange.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.updExchangeSubscriptionLifetime)).BeginInit();
             this.grpMail.SuspendLayout();
@@ -89,17 +90,17 @@
             // lblBevel
             // 
             this.lblBevel.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.lblBevel.Location = new System.Drawing.Point(11, 421);
+            this.lblBevel.Location = new System.Drawing.Point(10, 464);
             this.lblBevel.Margin = new System.Windows.Forms.Padding(0);
             this.lblBevel.Name = "lblBevel";
-            this.lblBevel.Size = new System.Drawing.Size(680, 3);
+            this.lblBevel.Size = new System.Drawing.Size(681, 3);
             this.lblBevel.TabIndex = 6;
             // 
             // btnOk
             // 
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.btnOk.Font = new System.Drawing.Font("Tahoma", 7.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.btnOk.Location = new System.Drawing.Point(485, 440);
+            this.btnOk.Location = new System.Drawing.Point(486, 482);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(100, 28);
             this.btnOk.TabIndex = 7;
@@ -111,7 +112,7 @@
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnCancel.Font = new System.Drawing.Font("Tahoma", 7.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.btnCancel.Location = new System.Drawing.Point(591, 440);
+            this.btnCancel.Location = new System.Drawing.Point(592, 482);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(100, 28);
             this.btnCancel.TabIndex = 8;
@@ -120,6 +121,7 @@
             // 
             // grpExchange
             // 
+            this.grpExchange.Controls.Add(this.chkExchangeAcceptInvalidCertificate);
             this.grpExchange.Controls.Add(this.lblExchangeSubscriptionLifetime);
             this.grpExchange.Controls.Add(this.updExchangeSubscriptionLifetime);
             this.grpExchange.Controls.Add(this.txtExchangeDomain);
@@ -130,9 +132,9 @@
             this.grpExchange.Controls.Add(this.lblExchangeUserName);
             this.grpExchange.Controls.Add(this.lblExchangeUrl);
             this.grpExchange.Controls.Add(this.txtExchangeUrl);
-            this.grpExchange.Location = new System.Drawing.Point(11, 12);
+            this.grpExchange.Location = new System.Drawing.Point(10, 12);
             this.grpExchange.Name = "grpExchange";
-            this.grpExchange.Size = new System.Drawing.Size(337, 176);
+            this.grpExchange.Size = new System.Drawing.Size(338, 224);
             this.grpExchange.TabIndex = 0;
             this.grpExchange.TabStop = false;
             this.grpExchange.Text = "Exchange server";
@@ -238,9 +240,9 @@
             this.grpMail.Controls.Add(this.lblMailUserName);
             this.grpMail.Controls.Add(this.txtMailServerName);
             this.grpMail.Controls.Add(this.lblMailServerName);
-            this.grpMail.Location = new System.Drawing.Point(354, 12);
+            this.grpMail.Location = new System.Drawing.Point(353, 12);
             this.grpMail.Name = "grpMail";
-            this.grpMail.Size = new System.Drawing.Size(337, 236);
+            this.grpMail.Size = new System.Drawing.Size(338, 224);
             this.grpMail.TabIndex = 1;
             this.grpMail.TabStop = false;
             this.grpMail.Text = "Mail server";
@@ -380,9 +382,9 @@
             this.grpLog.Controls.Add(this.btnLogFileName);
             this.grpLog.Controls.Add(this.txtLogFileName);
             this.grpLog.Controls.Add(this.lblLogFileName);
-            this.grpLog.Location = new System.Drawing.Point(11, 319);
+            this.grpLog.Location = new System.Drawing.Point(10, 368);
             this.grpLog.Name = "grpLog";
-            this.grpLog.Size = new System.Drawing.Size(680, 84);
+            this.grpLog.Size = new System.Drawing.Size(681, 84);
             this.grpLog.TabIndex = 5;
             this.grpLog.TabStop = false;
             this.grpLog.Text = "Log";
@@ -446,9 +448,9 @@
             this.grpOnlineSync.Controls.Add(this.chkSyncEnabled);
             this.grpOnlineSync.Controls.Add(this.lblMaxDaysToSync);
             this.grpOnlineSync.Controls.Add(this.updMaxDaysToSync);
-            this.grpOnlineSync.Location = new System.Drawing.Point(11, 194);
+            this.grpOnlineSync.Location = new System.Drawing.Point(10, 242);
             this.grpOnlineSync.Name = "grpOnlineSync";
-            this.grpOnlineSync.Size = new System.Drawing.Size(337, 54);
+            this.grpOnlineSync.Size = new System.Drawing.Size(338, 54);
             this.grpOnlineSync.TabIndex = 2;
             this.grpOnlineSync.TabStop = false;
             this.grpOnlineSync.Text = "Online synchronization";
@@ -486,7 +488,7 @@
             this.grpOfflineSync.Controls.Add(this.btnOfflineSyncNow);
             this.grpOfflineSync.Controls.Add(this.dtpOffilneSyncTo);
             this.grpOfflineSync.Controls.Add(this.dtpOffilneSyncFrom);
-            this.grpOfflineSync.Location = new System.Drawing.Point(10, 254);
+            this.grpOfflineSync.Location = new System.Drawing.Point(10, 302);
             this.grpOfflineSync.Name = "grpOfflineSync";
             this.grpOfflineSync.Size = new System.Drawing.Size(338, 60);
             this.grpOfflineSync.TabIndex = 3;
@@ -535,12 +537,22 @@
             // chkAutoRun
             // 
             this.chkAutoRun.AutoSize = true;
-            this.chkAutoRun.Location = new System.Drawing.Point(364, 276);
+            this.chkAutoRun.Location = new System.Drawing.Point(363, 261);
             this.chkAutoRun.Name = "chkAutoRun";
             this.chkAutoRun.Size = new System.Drawing.Size(180, 21);
             this.chkAutoRun.TabIndex = 4;
             this.chkAutoRun.Text = "Run at Windows startup";
             this.chkAutoRun.UseVisualStyleBackColor = true;
+            // 
+            // chkExchangeAcceptInvalidCertificate
+            // 
+            this.chkExchangeAcceptInvalidCertificate.AutoSize = true;
+            this.chkExchangeAcceptInvalidCertificate.Location = new System.Drawing.Point(10, 182);
+            this.chkExchangeAcceptInvalidCertificate.Name = "chkExchangeAcceptInvalidCertificate";
+            this.chkExchangeAcceptInvalidCertificate.Size = new System.Drawing.Size(219, 21);
+            this.chkExchangeAcceptInvalidCertificate.TabIndex = 10;
+            this.chkExchangeAcceptInvalidCertificate.Text = "Accept invalid SSL certificates";
+            this.chkExchangeAcceptInvalidCertificate.UseVisualStyleBackColor = true;
             // 
             // OptionsForm
             // 
@@ -548,7 +560,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(704, 479);
+            this.ClientSize = new System.Drawing.Size(704, 521);
             this.Controls.Add(this.chkAutoRun);
             this.Controls.Add(this.grpOfflineSync);
             this.Controls.Add(this.grpOnlineSync);
@@ -630,5 +642,6 @@
         private System.Windows.Forms.DateTimePicker dtpOffilneSyncTo;
         private System.Windows.Forms.DateTimePicker dtpOffilneSyncFrom;
         private System.Windows.Forms.CheckBox chkAutoRun;
+        private System.Windows.Forms.CheckBox chkExchangeAcceptInvalidCertificate;
     }
 }

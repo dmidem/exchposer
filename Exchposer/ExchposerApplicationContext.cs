@@ -18,6 +18,8 @@ namespace Exchposer
         private const int maxLogFileSize = 1024 * 50;
         private const int maxLogFileCount = 3;
 
+        private const int exchangeReconnectTimeout = 10;
+
         static AppSettings appSettings = null;
         private FileString syncId = null;
 
@@ -63,6 +65,9 @@ namespace Exchposer
 
         protected void Log(int level, string message)
         {
+            int managedThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+            message = "[thr" + managedThreadId + "] " + message;
+
             if (notifyIconMenu.InvokeRequired)
             {
                 SetLogCallback d = new SetLogCallback(Log);
@@ -121,8 +126,10 @@ namespace Exchposer
             }
         }
 
-        public bool SyncInit(DateTime syncFromTime, DateTime syncToTime, bool offlineSync)
+
+        public bool AppInit()
         {
+            AppStop();
             try
             {
                 AppSettings.Load(ref appSettings);
@@ -146,8 +153,22 @@ namespace Exchposer
                 return false;
             }
 
+            return true;
+        }
+
+        public void AppStop()
+        {
+            if (logWriter != null)
+                logWriter.Close();
+            logWriter = null;
+        }
+
+        public bool SyncInit(DateTime syncFromTime, DateTime syncToTime, bool offlineSync)
+        {
+
+            CertificateCallback.AcceptInvalidCertificate = appSettings.ExchangeAcceptInvalidCertificate;
             exchangeServer = new ExchangeServer(appSettings.ExchangeUserName, appSettings.ExchangePassword,
-                appSettings.ExchangeDomain, appSettings.ExchangeUrl, (l, m) => { Log(l, m); });
+                appSettings.ExchangeDomain, appSettings.ExchangeUrl, exchangeReconnectTimeout, (l, m) => { Log(l, m); });
 
             try
             {
@@ -211,7 +232,7 @@ namespace Exchposer
             if (!SyncInit(syncFromTime, syncToTime, false))
                 return;
 
-            exchangeServer.SetStreamingNotifications(msg =>
+            exchangeServer.StartStreamingNotifications(msg =>
             {
                 try
                 {
@@ -235,10 +256,6 @@ namespace Exchposer
             if (mailServer != null)
                 mailServer.Close();
             mailServer = null;
-
-            if (logWriter != null)
-                logWriter.Close();
-            logWriter = null;
         }
 
         public void OfflineSync(DateTime syncFromTime, DateTime syncToTime)
@@ -290,8 +307,9 @@ namespace Exchposer
             notifyIcon.DoubleClick += new EventHandler(NotifyIcon_DoubleClick);
             notifyIcon.Visible = true;
 
-            CertificateCallback.Initialize(); 
+            CertificateCallback.Initialize();
 
+            AppInit();
             if (appSettings.SyncEnabled)
                 SyncStart();
         }
@@ -320,8 +338,12 @@ namespace Exchposer
                 {
                     appSettings.Copy(optionsForm.GetSettings());
                     appSettings.Save();
+
+                    AppInit();
                     if (appSettings.SyncEnabled)
                         SyncStart();
+                    else
+                        SyncStop();
                 }
             }
             optionsForm = null;
@@ -375,6 +397,7 @@ namespace Exchposer
             }
 
             SyncStop();
+            AppStop();
 
             base.ExitThreadCore();
         }
