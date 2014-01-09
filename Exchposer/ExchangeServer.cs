@@ -188,16 +188,17 @@ namespace Exchposer
         {
             restartTimer.Stop();
 
-            try
-            {
-                if (streamingSubscription != null)
+            if (streamingSubscription != null)
+                try
                 {
                     var tmpStreamingSubscription = streamingSubscription;
                     streamingSubscription = null;
                     tmpStreamingSubscription.Unsubscribe();
                 }
+                catch { }
 
-                if (subscriptionConnection != null)
+            if (subscriptionConnection != null)
+                try
                 {
                     if (subscriptionConnection.IsOpen)
                         subscriptionConnection.Close();
@@ -205,11 +206,7 @@ namespace Exchposer
                     subscriptionConnection = null;
                     Log(2, "Exchange subscription stopped");
                 }
-            }
-            catch (Exception ex)
-            {
-                Log(1, String.Format("Exchange subscription stopping error: {0}", ex.Message));
-            }
+                catch { }
         }
 
         public void RestartStreamingNotifications()
@@ -264,7 +261,7 @@ namespace Exchposer
             if (streamingSubscription == null)
                 return;
 
-            Log(3, String.Format("Exchange subscription error: {0} Restartting subscribtion...", args.Exception.Message));
+            Log(20, String.Format("Exchange subscription error: {0} Restartting subscribtion...", args.Exception.Message));
             RestartStreamingNotifications();
 /*
             try
